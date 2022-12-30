@@ -1,19 +1,24 @@
 const fs = require('fs');
 const { parse } = require('csv-parse');
 
+type OutPutRowObject = {
+  json: Array<number>,
+  id: string,
+  is_valid: boolean
+}
 /**
  * The method reads the content of the CSV file and returns the rows with data.
  * The first row (index 0 or line 1) is ignored as they are assumed to be headers 
  * @param {String} csvPath - Path to the CSV file
  * @returns {Promise} - A Promise that resolves with CSV rows in the form of Array of Arrays.
  */
-const parseCsv = (csvPath) => {
+const parseCsv = (csvPath: string) => {
   return new Promise((resolve, reject) => {
     try {
-      const streamedData = [];
+      const streamedData: Array<Array<string>> = [];
       fs.createReadStream(csvPath)
         .pipe(parse({ delimiter: ",", from_line: 2 })) // No need to get the headers from csv
-        .on("data", (row) => {
+        .on("data", (row: Array<string>) => {
           streamedData.push(row)
         })
         .on('end', () => {
@@ -31,11 +36,11 @@ const parseCsv = (csvPath) => {
  * @param {Array} arr - An array of objects to be transformed into csv content
  * @returns {String} - Transformed Array in String format.
  */
-const convertForCSV = (arr) => {
-  const output = []
+const convertForCSV = (arr: Array<OutPutRowObject>) => {
+  const output: Array<Array<string>> = []
   output.push(Object.keys(arr[0])); // First row should be headers/ Title
   arr.forEach(({ id, json, is_valid: isValid }) => {
-    const rowArr = [];
+    const rowArr: Array<any> = [];
     rowArr.push(id, JSON.stringify(json), isValid)
     output.push(rowArr)
   })
@@ -49,14 +54,14 @@ const convertForCSV = (arr) => {
  * @param {Number} chunkSize - The size of each chunk 
  * @returns {Array} An array containing chunks as arrays.
  */
-const createChunksFromArray = (arr, chunkSize) => {
-  const rowsList = []
+const createChunksFromArray = (arr: Array<number>, chunkSize: number) => {
+  const rowsList: Array<Array<number>> = []
   for (let i = 0; i < arr.length; i += chunkSize) {
-    const initRow = arr.slice(i, i + chunkSize);
+    const initRow: Array<number> = arr.slice(i, i + chunkSize);
 
     rowsList.push(initRow)
   }
   return rowsList;
 }
 
-module.exports = { parseCsv, convertForCSV, createChunksFromArray }
+export { parseCsv, convertForCSV, createChunksFromArray }

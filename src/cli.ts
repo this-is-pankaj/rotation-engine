@@ -1,8 +1,8 @@
 const { parseCsv, convertForCSV, createChunksFromArray } = require('./utils');
 
-const rotateRows = (listOfRows) => {
+const rotateRows = (listOfRows: Array<Array<number>>) => {
   const numOfRows = listOfRows.length;
-  let lastPopped;
+  let lastPopped: number | undefined;
   for (let i = 0; i < numOfRows; i++) {
     // For the first (n-2) rows
     //   The last number will move to the next row
@@ -21,17 +21,17 @@ const rotateRows = (listOfRows) => {
     //  The first number moves to the previous row.
     if (i > 0) {
       // Extract the first number and move up
-      const lastShifted = listOfRows[i].shift();
+      const lastShifted: number | undefined = listOfRows[i].shift();
       // If a number was shifted, it needs to be added to the prev row
-      listOfRows[i - 1].unshift(lastShifted)
+      listOfRows[i - 1].unshift(lastShifted as number)
     }
   }
   // Push the last popped number to the last row
-  listOfRows[numOfRows - 1].push(lastPopped);
+  listOfRows[numOfRows - 1].push(lastPopped as number);
 
   // Check if it may have another rotate-able set within
   if ((numOfRows - 2) > 1) {
-    const fullRows = [];
+    const fullRows: Array<Array<number>> = [];
     for (let j = 1; j < (numOfRows - 1); j++) {
       fullRows.push(listOfRows[j].splice(1, (numOfRows - 2)))
     }
@@ -46,7 +46,7 @@ const rotateRows = (listOfRows) => {
   return listOfRows;
 }
 
-const rotate = (data) => {
+const rotate = (data: Array<number>) => {
   const numOfElements = data.length;
   // If the length is 1, no need to process further as the data is valid
   if (numOfElements === 1) {
@@ -67,9 +67,9 @@ const rotate = (data) => {
 
   // Break the data into small chunks of n elems where n=sqRootOfLength
   const rowsList = createChunksFromArray(data, sqRootOfLength)
-  const processedRows = rotateRows(JSON.parse(JSON.stringify(rowsList)))  // Sending a copy of original matrix
+  const processedRows: Array<Array<number>> = rotateRows(JSON.parse(JSON.stringify(rowsList)))  // Sending a copy of original matrix
   return {
-    json: [].concat(...processedRows),
+    json: processedRows.flat(),
     isValid: true
   }
 }
@@ -79,7 +79,7 @@ const initialize = async () => {
   const parsedIncomingData = await parseCsv(inputCSVPath)
   const parsedIncomingDataAsMap = new Map(parsedIncomingData)
 
-  const listOfTables = Array.from(parsedIncomingDataAsMap, ([id, arr]) => ({ id, json: JSON.parse(arr), isValid: false }))
+  const listOfTables = Array.from(parsedIncomingDataAsMap, ([id, arr]) => ({ id, json: JSON.parse(arr as string), isValid: false }))
 
   const finalOutput = listOfTables.map((row) => {
     const { json, isValid } = rotate(row.json)
