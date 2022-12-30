@@ -1,4 +1,4 @@
-const { parseCsv, convertForCSV } = require('./utils');
+const { parseCsv, convertForCSV, createChunksFromArray } = require('./utils');
 
 const rotateRows = (listOfRows) => {
   const numOfRows = listOfRows.length;
@@ -30,17 +30,17 @@ const rotateRows = (listOfRows) => {
   listOfRows[numOfRows - 1].push(lastPopped);
 
   // Check if it may have another rotate-able set within
-  if((numOfRows-2) > 1) {
+  if ((numOfRows - 2) > 1) {
     const fullRows = [];
-    for(let j = 1; j< (numOfRows -1); j++) {
+    for (let j = 1; j < (numOfRows - 1); j++) {
       fullRows.push(listOfRows[j].splice(1, (numOfRows - 2)))
     }
     // Shed the first and last elements of each row
     const subRotated = rotateRows(fullRows)
     // After the rotation, add them back to where they were extracted from
-    for(let j = 0; j< subRotated.length; j++) {
-      listOfRows[j+1].splice(1,0,...subRotated[j]);
-    }    
+    for (let j = 0; j < subRotated.length; j++) {
+      listOfRows[j + 1].splice(1, 0, ...subRotated[j]);
+    }
   }
 
   return listOfRows;
@@ -49,7 +49,7 @@ const rotateRows = (listOfRows) => {
 const rotate = (data) => {
   const numOfElements = data.length;
   // If the length is 1, no need to process further as the data is valid
-  if(numOfElements === 1) {
+  if (numOfElements === 1) {
     return {
       json: data,
       isValid: true
@@ -57,48 +57,39 @@ const rotate = (data) => {
   }
 
   const sqRootOfLength = Math.sqrt(numOfElements);
-    // If the length is not a perfect sqaure, return invalid json
-    if ((sqRootOfLength % 1) !== 0) {
-      return {
-        json: [],
-        isValid: false
-      };
-    }
-
-    // Break the data into small chunks of n elems where n=sqRootOfLength
-    const rowsList = []
-    for (let i = 0; i < numOfElements; i += sqRootOfLength) {
-      const initRow = data.slice(i, i + sqRootOfLength);
-
-      rowsList.push(initRow)
-    }
-    const processedRows = rotateRows(JSON.parse(JSON.stringify(rowsList)))  // Sending a copy of original matrix
+  // If the length is not a perfect sqaure, return invalid json
+  if ((sqRootOfLength % 1) !== 0) {
     return {
-      json: [].concat(...processedRows),
-      isValid: true
-    }
+      json: [],
+      isValid: false
+    };
+  }
+
+  // Break the data into small chunks of n elems where n=sqRootOfLength
+  const rowsList = createChunksFromArray(data, sqRootOfLength)
+  const processedRows = rotateRows(JSON.parse(JSON.stringify(rowsList)))  // Sending a copy of original matrix
+  return {
+    json: [].concat(...processedRows),
+    isValid: true
+  }
 }
 
 const initialize = async () => {
   const inputCSVPath = process.argv[2]; // The 2nd argument will hold the path to the csv file
-  const incomingData = await parseCsv(inputCSVPath)
-  const incomingDataAsMap = new Map(incomingData)
-  const obj = {};
-  incomingDataAsMap.forEach((v, k) => {
-    // Create a custom dictionary with the available values
-    obj[k] = {
-      json: JSON.parse(v),
-      isValid: false
-    }
-  })
+  const parsedIncomingData = await parseCsv(inputCSVPath)
+  const parsedIncomingDataAsMap = new Map(parsedIncomingData)
 
-  const finalOutput = [];
-  for(let id in obj) {
-    const data = obj[id].json;
-    const { json, isValid } = rotate(data)
-    finalOutput.push({ id, json, is_valid: isValid })
-  }
-  console.log(convertForCSV(finalOutput))
+  const listOfTables = Array.from(parsedIncomingDataAsMap, ([id, arr]) => ({ id, json: JSON.parse(arr), isValid: false }))
+
+  const finalOutput = listOfTables.map((row) => {
+    const { json, isValid } = rotate(row.json)
+    return {
+      id: row.id,
+      json,
+      is_valid: isValid
+    }
+  });
+  process.stdout.write(convertForCSV(finalOutput))
 }
 
 initialize()
