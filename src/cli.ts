@@ -88,7 +88,9 @@ const initialize = async () => {
       is_valid: isValid
     }
   });
-  process.stdout.write(convertForCSV(finalOutput))
+  const finalOutputForCSV = convertForCSV(finalOutput)
+  process.stdout.write(finalOutputForCSV)
+  return finalOutputForCSV;
 }
 
 initialize()
