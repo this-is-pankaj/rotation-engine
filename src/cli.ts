@@ -1,4 +1,4 @@
-const { parseCsv, convertForCSV, createChunksFromArray } = require('./utils');
+import { parseCsv, convertForCSV, createChunksFromArray } from './utils';
 
 const rotateRows = (listOfRows: Array<Array<number>>) => {
   const numOfRows = listOfRows.length;
@@ -77,14 +77,13 @@ const rotate = (data: Array<number>) => {
 const initialize = async () => {
   const inputCSVPath = process.argv[2]; // The 2nd argument will hold the path to the csv file
   const parsedIncomingData = await parseCsv(inputCSVPath)
-  const parsedIncomingDataAsMap = new Map(parsedIncomingData)
 
-  const listOfTables = Array.from(parsedIncomingDataAsMap, ([id, arr]) => ({ id, json: JSON.parse(arr as string), isValid: false }))
+  const listOfTables = Array.from(new Map(parsedIncomingData as any), ([id, arr]) => ({ id, json: JSON.parse(arr as string), isValid: false }))
 
-  const finalOutput = listOfTables.map((row) => {
+  const finalOutput: Array<OutPutRowObject> = listOfTables.map((row) => {
     const { json, isValid } = rotate(row.json)
     return {
-      id: row.id,
+      id: row.id as string,
       json,
       is_valid: isValid
     }

@@ -1,11 +1,6 @@
 const fs = require('fs');
 const { parse } = require('csv-parse');
 
-type OutPutRowObject = {
-  json: Array<number>,
-  id: string,
-  is_valid: boolean
-}
 /**
  * The method reads the content of the CSV file and returns the rows with data.
  * The first row (index 0 or line 1) is ignored as they are assumed to be headers 
