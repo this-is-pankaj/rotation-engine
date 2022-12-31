@@ -7,7 +7,7 @@ const { parse } = require('csv-parse');
  * @param {String} csvPath - Path to the CSV file
  * @returns {Promise} - A Promise that resolves with CSV rows in the form of Array of Arrays.
  */
-const parseCsv = (csvPath: string) => {
+const parseCsv = (csvPath: string): Promise<Array<Array<string>>> => {
   return new Promise((resolve, reject) => {
     try {
       const streamedData: Array<Array<string>> = [];

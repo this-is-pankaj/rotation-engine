@@ -75,22 +75,26 @@ const rotate = (data: Array<number>) => {
 }
 
 const initialize = async () => {
-  const inputCSVPath = process.argv[2]; // The 2nd argument will hold the path to the csv file
-  const parsedIncomingData = await parseCsv(inputCSVPath)
+  try {
+    const inputCSVPath = process.argv[2]; // The 2nd argument will hold the path to the csv file
+    const parsedIncomingData: Array<Array<string>> = await parseCsv(inputCSVPath)
 
-  const listOfTables = Array.from(new Map(parsedIncomingData as any), ([id, arr]) => ({ id, json: JSON.parse(arr as string), isValid: false }))
+    const listOfTables = parsedIncomingData.map(([id, arr]) => ({ id, json: JSON.parse(arr as string), isValid: false }))
 
-  const finalOutput: Array<OutPutRowObject> = listOfTables.map((row) => {
-    const { json, isValid } = rotate(row.json)
-    return {
-      id: row.id as string,
-      json,
-      is_valid: isValid
-    }
-  });
-  const finalOutputForCSV = convertForCSV(finalOutput)
-  process.stdout.write(finalOutputForCSV)
-  return finalOutputForCSV;
+    const finalOutput: Array<OutPutRowObject> = listOfTables.map((row) => {
+      const { json, isValid } = rotate(row.json)
+      return {
+        id: row.id as string,
+        json,
+        is_valid: isValid
+      }
+    });
+    const finalOutputForCSV = convertForCSV(finalOutput)
+    process.stdout.write(finalOutputForCSV)
+    return finalOutputForCSV;
+  } catch (exc) {
+    throw exc;
+  }
 }
 
 initialize()
